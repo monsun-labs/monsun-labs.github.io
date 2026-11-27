@@ -31,10 +31,14 @@ jobs:
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
+          # Preserve redirect assets before switching/wiping the worktree
+          mkdir -p /tmp/labs-redirect
+          cp redirect/index.html redirect/404.html /tmp/labs-redirect/
+          git fetch origin gh-pages:gh-pages 2>/dev/null || true
           git checkout gh-pages 2>/dev/null || git checkout --orphan gh-pages
           find . -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
-          cp redirect/index.html index.html
-          cp redirect/404.html 404.html
+          cp /tmp/labs-redirect/index.html index.html
+          cp /tmp/labs-redirect/404.html 404.html
           echo "labs.monsun.io" > CNAME
           git add -A
           git commit -m "Redirect labs.monsun.io to monsun.io/labs" || true
