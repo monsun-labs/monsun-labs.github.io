@@ -29,20 +29,29 @@ jobs:
 
       - name: Deploy labs.monsun.io redirect to monsun.io/labs
         run: |
+          set -euo pipefail
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          # Preserve redirect assets before switching/wiping the worktree
+
+          # Preserve redirect assets; zensical build leaves a dirty worktree
           mkdir -p /tmp/labs-redirect
           cp redirect/index.html redirect/404.html /tmp/labs-redirect/
-          git fetch origin gh-pages:gh-pages 2>/dev/null || true
-          git checkout gh-pages 2>/dev/null || git checkout --orphan gh-pages
+
+          git fetch origin gh-pages || true
+          if git show-ref --verify --quiet refs/remotes/origin/gh-pages; then
+            git checkout -f -B gh-pages origin/gh-pages
+          else
+            git checkout --orphan gh-pages
+          fi
+
           find . -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
           cp /tmp/labs-redirect/index.html index.html
           cp /tmp/labs-redirect/404.html 404.html
           echo "labs.monsun.io" > CNAME
+
           git add -A
-          git commit -m "Redirect labs.monsun.io to monsun.io/labs" || true
-          git push origin gh-pages --force
+          git diff --cached --quiet || git commit -m "Redirect labs.monsun.io to monsun.io/labs"
+          git push origin HEAD:gh-pages --force
 
       # secrets.* cannot be used in step if: — gate inside the script instead
       - name: Trigger monsun.io/labs deploy
