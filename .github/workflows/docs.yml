@@ -40,11 +40,15 @@ jobs:
           git commit -m "Redirect labs.monsun.io to monsun.io/labs" || true
           git push origin gh-pages --force
 
+      # secrets.* cannot be used in step if: — gate inside the script instead
       - name: Trigger monsun.io/labs deploy
-        if: ${{ secrets.MONSUNIC_DEPLOY_TOKEN != '' }}
         env:
           GH_TOKEN: ${{ secrets.MONSUNIC_DEPLOY_TOKEN }}
         run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "Skipping: MONSUNIC_DEPLOY_TOKEN not set"
+            exit 0
+          fi
           curl -fsSL -X POST \
             -H "Authorization: Bearer $GH_TOKEN" \
             -H "Accept: application/vnd.github+json" \
