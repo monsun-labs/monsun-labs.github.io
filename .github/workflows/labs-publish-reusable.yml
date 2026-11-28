@@ -1,0 +1,138 @@
+# Reusable: convert tutorial notebook → website PR (no merge, no deploy).
+# Called from tutorial repos. Requires a cross-repo token (GitHub App preferred).
+name: Labs publish (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      tutorial_repository:
+        description: "owner/name of the tutorial source repo"
+        required: true
+        type: string
+      tutorial_ref:
+        description: "Git ref in the tutorial repo"
+        required: true
+        type: string
+      manifest_path:
+        description: "Manifest path inside the tutorial repo"
+        required: false
+        type: string
+        default: labs-publish/manifest.yaml
+    secrets:
+      PUBLISH_TOKEN:
+        description: "Token with contents:write + pull_requests:write on monsun-labs.github.io"
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  publish-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout tutorial source
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ inputs.tutorial_repository }}
+          ref: ${{ inputs.tutorial_ref }}
+          path: tutorial
+          token: ${{ secrets.PUBLISH_TOKEN }}
+
+      - name: Resolve tutorial SHA
+        id: meta
+        working-directory: tutorial
+        run: |
+          set -euo pipefail
+          SHA=$(git rev-parse HEAD)
+          SLUG=$(awk '/^slug:/{print $2; exit}' "${{ inputs.manifest_path }}")
+          if [ -z "$SLUG" ]; then
+            echo "Could not read slug from ${{ inputs.manifest_path }}"
+            exit 1
+          fi
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          echo "slug=$SLUG" >> "$GITHUB_OUTPUT"
+          echo "branch=publish/${SLUG}" >> "$GITHUB_OUTPUT"
+          echo "Tutorial $SLUG @ $SHA"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Convert notebook (no execute)
+        working-directory: tutorial
+        run: |
+          set -euo pipefail
+          pip install -r labs-publish/requirements.txt
+          python labs-publish/convert_notebook.py --manifest "${{ inputs.manifest_path }}"
+          test -f labs-publish/out/body.md
+          grep -q 'executed: false' labs-publish/out/provenance.yaml
+
+      - name: Checkout website
+        uses: actions/checkout@v5
+        with:
+          repository: monsun-labs/monsun-labs.github.io
+          ref: main
+          path: website
+          token: ${{ secrets.PUBLISH_TOKEN }}
+
+      - name: Apply artifacts to website tree
+        run: |
+          set -euo pipefail
+          python tutorial/labs-publish/apply_to_website.py \
+            --manifest "tutorial/${{ inputs.manifest_path }}" \
+            --out tutorial/labs-publish/out \
+            --website-root website
+
+      - name: Create or update pull request
+        env:
+          GH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
+        working-directory: website
+        run: |
+          set -euo pipefail
+          SLUG="${{ steps.meta.outputs.slug }}"
+          SHA="${{ steps.meta.outputs.sha }}"
+          BRANCH="${{ steps.meta.outputs.branch }}"
+          git config user.name "monsun-labs-publish[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git fetch origin "$BRANCH" || true
+          if git show-ref --verify --quiet "refs/remotes/origin/$BRANCH"; then
+            git checkout -B "$BRANCH" "origin/$BRANCH"
+          else
+            git checkout -B "$BRANCH"
+          fi
+
+          git add -A "docs/tutorials/${SLUG}/"
+          if git diff --cached --quiet; then
+            echo "No website content changes for ${SLUG}@${SHA}"
+            # Still ensure a PR exists pointing at this branch
+          else
+            git commit -m "publish(${SLUG}): sync notebook artifacts from ${SHA:0:7}"
+          fi
+
+          git push -u origin "HEAD:$BRANCH"
+
+          EXISTING=$(gh pr list --repo monsun-labs/monsun-labs.github.io \
+            --head "$BRANCH" --state open --json number --jq '.[0].number // empty')
+          if [ -n "$EXISTING" ]; then
+            echo "Updated existing PR #$EXISTING"
+            gh pr comment "$EXISTING" --repo monsun-labs/monsun-labs.github.io \
+              --body "Updated publish artifacts from \`${{ inputs.tutorial_repository }}\`@\`${SHA}\`. Human review + merge required (Policy B)."
+          else
+            gh pr create --repo monsun-labs/monsun-labs.github.io \
+              --base main \
+              --head "$BRANCH" \
+              --title "publish(${SLUG}): notebook artifacts from ${SHA:0:7}" \
+              --body "$(cat <<EOF
+          ## Summary
+          - Auto-converted notebook artifacts for \`${SLUG}\` from \`${{ inputs.tutorial_repository }}\`@\`${SHA}\`
+          - No notebook execution; committed outputs only
+          - Does **not** auto-merge — Policy B requires tyorus review + merge
+
+          ## Test plan
+          - [ ] Review \`docs/tutorials/${SLUG}/body.md\` and \`media/\`
+          - [ ] Confirm curated \`index.md\` unchanged unless \`replace_index: true\`
+          - [ ] \`zensical build --clean\` locally if media paths look wrong
+          EOF
+          )"
+          fi
