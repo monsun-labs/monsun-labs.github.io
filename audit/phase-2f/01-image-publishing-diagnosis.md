@@ -62,6 +62,15 @@
 2. **Policy B (website):** regenerate `body.md`; embed publishable figures into curated `index.md` so the canonical tutorial URL shows images.
 3. **Ops (no config edit):** trigger existing host `deploy-labs` workflow (or restore `MONSUNIC_DEPLOY_TOKEN`) so `monsun.io/labs/` rebuilds.
 
+## Live verification (partial)
+
+After manually triggering host `deploy-labs` (run `46114712751`):
+
+- Landing page reflects PR #5 copy (`39 × 39`, Auto-converted link) but still **only** the Colab badge image (R2/R4 remain).
+- `https://monsun.io/labs/tutorials/extract-point/body/` renders `media/output_26_0.png` at 1548×1187 (committed display_data extraction + Zensical path OK).
+
+Full landing-page figure success requires merging website PR #6 and redeploying.
+
 ## Success criteria
 
 Live `https://monsun.io/labs/tutorials/extract-point/` renders notebook-derived figures (not only the Colab badge), with resolved `media/*` URLs.
