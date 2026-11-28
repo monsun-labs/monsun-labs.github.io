@@ -30,7 +30,7 @@ Monsun Labs uses **open data only** — reproducible tutorials with ERA5, Copern
 
 ## Sample Data
 
-Pre-sliced files ship with each tutorial repo — for example, [extract-point/data/](https://github.com/monsun-labs/extract-point/tree/main/data).
+Tutorial sample files are **not** committed to git. They ship as GitHub Release assets and are downloaded by each notebook bootstrap — for example, [extract-point `v0.1-data`](https://github.com/monsun-labs/extract-point/releases/tag/v0.1-data) (~118 MB ERA5 NetCDF). Specs and checksums live in each tutorial repo's `data/README.md`.
 
 Full access instructions and attribution requirements are in [DATA_SOURCES.md](https://github.com/monsun-labs/monsun-labs.github.io/blob/main/DATA_SOURCES.md) on GitHub.
 
@@ -40,4 +40,4 @@ Each tutorial repo pins its own `requirements.txt` or `environment.yml`. Check t
 
 ## New to This Stack?
 
-Start with the [Point Extraction tutorial](../tutorials/extract-point/) — it uses ERA5 sample data included in the repo. No API key required to run the notebook.
+Start with the [Point Extraction tutorial](../tutorials/extract-point/) — it uses an ERA5 sample hosted on GitHub Releases. No API key required to run the notebook.

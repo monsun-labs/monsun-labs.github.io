@@ -5,7 +5,7 @@ Monsun Labs tutorials use **open data only**. Gated or proprietary datasets (e.g
 ## Policy
 
 - Reproducible by anyone with internet access
-- Sample slices (<10 MB) live in **tutorial repos**, not this website repo
+- Teaching samples live as **GitHub Release assets** in tutorial repos (not in this website repo). Sizes vary — Extract Point's ERA5 sample is ~118 MB
 - Full datasets linked with official access instructions
 
 ## Primary Sources
@@ -38,7 +38,7 @@ Monsun Labs tutorials use **open data only**. Gated or proprietary datasets (e.g
 
 ## Sample Data
 
-Pre-sliced tutorial data ships with each tutorial repo. For example, see [extract-point/data/](https://github.com/monsun-labs/extract-point/tree/main/data).
+Pre-sliced tutorial data is published as Release assets (not committed to git). For example, see [extract-point `v0.1-data`](https://github.com/monsun-labs/extract-point/releases/tag/v0.1-data) and the sample spec in [extract-point/data/README.md](https://github.com/monsun-labs/extract-point/blob/main/data/README.md).
 
 Sample files are for teaching only — not certified for engineering design.
 

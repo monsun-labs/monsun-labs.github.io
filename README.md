@@ -2,7 +2,7 @@
 
 Open-source knowledge hub for metocean analytics — project-first Python tutorials using ERA5, Copernicus, NOAA, and other open data.
 
-**Live site:** [monsun-labs.github.io](https://monsun-labs.github.io)
+**Live site:** [https://monsun.io/labs/](https://monsun.io/labs/)
 
 ## Two-repo pattern
 
@@ -34,7 +34,7 @@ docs/
 DATA_SOURCES.md         Open-data policy and access notes
 ```
 
-## Monthly publish checklist
+## Publish checklist
 
 When a new tutorial repo ships:
 

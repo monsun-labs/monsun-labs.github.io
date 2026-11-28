@@ -29,9 +29,9 @@ hide:
 
 <div class="nw-home__body" markdown="1">
 
-## Shipped monthly, one tutorial at a time
+## Open-source tutorials, built for real workflows
 
-Each release is a self-contained GitHub repo with a Colab notebook.
+Each tutorial is a self-contained GitHub repo with a Colab notebook.
 
 <div class="nw-home__grid" markdown="0">
   <div class="nw-home__card">

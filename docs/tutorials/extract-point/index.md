@@ -15,14 +15,14 @@ Extract Hs, Tp, and wind speed at any location from ERA5 — reading 0.0001% of 
 ## The problem
 
 You need Hs, Tp, and wind speed at one offshore platform.
-**4°N, 108°E. Natuna Sea. 10 years of hourly data.**
+**4°N, 108°E. Natuna Sea. A full year of hourly data — and the same pattern scales to multi-year archives.**
 
 ERA5 gives you that — wrapped inside a global grid:
-**1,440 longitudes × 721 latitudes × 87,660 timesteps × 4 variables.**
+**1,440 longitudes × 721 latitudes × tens of thousands of timesteps × multiple variables.**
 
 You want **one longitude. One latitude. All timesteps.**
 
-That's 0.0001% of the data.
+That's a tiny fraction of the data.
 
 The question isn't *"how do I open this file."*
 The question is: **does your code read 0.0001% or 100%?**
@@ -59,7 +59,7 @@ Basic Python familiarity is helpful but not required.
 Click the Colab badge above, then **Runtime → Run all**.
 
 The notebook bootstraps itself: clones the repo, installs dependencies from
-`requirements-notebook.txt`, and downloads the sample ERA5 file (~120 MB) from
+`requirements-notebook.txt`, and downloads the sample ERA5 file (~118 MB) from
 [GitHub Releases](https://github.com/monsun-labs/extract-point/releases/tag/v0.1-data).
 No terminal. No CDS account. No local setup.
 
@@ -76,6 +76,8 @@ jupyter notebook notebooks/extract_point.ipynb
 ```
 
 Run the **Step 0** bootstrap cell if the sample file is missing.
+
+Auto-converted notebook Markdown (committed outputs, no re-execution): [body.md](body.md). Figures live under [media/](media/).
 
 ---
 
@@ -100,7 +102,7 @@ print(f"✅ Environment ready | repo: {REPO_ROOT.name} | data: {DATA_PATH.name}"
 ```
 
 ```
-Sample data OK: era5_sample.nc (118 MB)
+Sample data OK: era5_sample.nc (~118 MB)
 ✅ Environment ready | repo: extract-point | data: era5_sample.nc
 ```
 
@@ -113,7 +115,7 @@ Sample data OK: era5_sample.nc (118 MB)
 ERA5 is not a table. It is a labeled N-dimensional array stored on disk:
 
 ```
-        time  (8,760 steps for 1 year)
+        time  (8,784 hourly steps for 2024 in the tutorial sample)
        /
       /
      /__________ latitude  (721 points on the global ERA5 grid)
@@ -122,8 +124,9 @@ ERA5 is not a table. It is a labeled N-dimensional array stored on disk:
 ```
 
 !!! note "Global vs sample file"
-    The **tutorial sample** is a 20 × 20 slice at **0.5°** around Natuna Sea (~120 MB).
-    Full global ERA5 wave fields use a coarser grid than 0.25° atmospheric variables.
+    The **tutorial sample** is a **39 × 39** regional slice at **0.25°** around Natuna Sea (~118 MB).
+    Native ERA5 wave fields are often stored at **0.5°** globally; wind fields commonly use **0.25°**.
+    In this file, all variables share the 39×39 / 0.25° coordinate grid — treat file coordinates as authoritative for indexing.
     The diagram above describes the conceptual global layout — not the sample file dimensions.
 
 Each variable — `swh`, `tp`, `u10`, `v10` — is one such cube.
@@ -187,11 +190,11 @@ The tutorial uses `era5_sample.nc`, a pre-sliced ERA5 file:
 
 | Property | Value |
 |---|---|
-| Location | Natuna Sea, 4°N 108°E ± 5° box |
-| Grid | 20 × 20 cells at 0.5° resolution |
-| Period | 2024, hourly |
+| Location | Natuna Sea, 4°N 108°E (exact grid point present) |
+| Grid | **39 × 39** points; median step **0.25°** |
+| Period | 2024-01-01 → 2024-12-31, hourly (8784 steps) |
 | Variables | `swh` (Hs), `tp`, `u10`, `v10`, `mwd`, `shts`, `mdts`, `mpts` |
-| Size | ~120 MB |
+| Size | 118,466,500 bytes (~118 MB) |
 
 The file is hosted on [GitHub Releases](https://github.com/monsun-labs/extract-point/releases/tag/v0.1-data)
 and downloaded automatically by the Step 0 bootstrap cell.
@@ -220,8 +223,8 @@ Time: 0.15s
 ❌ Don't do this on a 2 GB file — you'd load 2 GB for one point
 ```
 
-On the 120 MB sample this seems tolerable.
-On a 10-year, 4-variable ERA5 download (> 5 GB), this crashes most laptops.
+On the ~118 MB sample this seems tolerable.
+On a multi-year, multi-variable ERA5 download (> 5 GB), this crashes most laptops.
 
 #### Method 2 — xarray lazy + `.sel()` ✅ recommended default
 
@@ -264,7 +267,7 @@ across multiple years, it pays off by processing chunks in parallel.
 
 #### Method 4 — Bilinear interpolation (when precision matters)
 
-ERA5 wave fields on the global grid are **0.5°** (~55 km).
+Native ERA5 wave fields are often **0.5°** (~55 km) on the global grid (this sample stores them on the shared 0.25° coordinates).
 If your platform sits between grid cells, interpolation gives a better estimate:
 
 ```python
@@ -344,7 +347,7 @@ for the first three months of 2024 as a visual sanity check.
 The benchmark measures **both time and peak RAM** across all four methods — because
 the whole point of lazy loading is saving memory, not just saving time.
 
-**5.1 — Quick live demo** on the 120 MB teaching file (differences are modest on this size).
+**5.1 — Quick live demo** on the ~118 MB teaching file (differences are modest on this size).
 
 **5.2 — Pre-computed charts** in `data/benchmark/` from maintainer runs on larger ERA5
 files — learners view PNG/CSV only, no multi-GB download.
@@ -361,14 +364,14 @@ Representative results on the teaching sample:
 Exact numbers vary by machine; the notebook prints live timings in Section 5.1.
 
 !!! note "Why the naive method isn't much slower on the sample"
-    The sample file is only 120 MB — it fits in RAM easily.
+    The sample file is only ~118 MB — it fits in RAM easily.
     On a real 5 GB multi-year ERA5 file, naive loading takes **60–80×** longer
     and often kills the process entirely. The lazy pattern scales.
     See the pre-computed charts in `data/benchmark/` (Section 5.2).
 
 ---
 
-### Section 7 — Site statistics
+### Section 6 — Site statistics
 
 Percentile summary (`mean`, P90, P99, max) for Hs, Tp, swell, and wind — using
 `quick_stats()` from `extract_utils`. Useful as a first-pass design-data sanity check
@@ -397,7 +400,7 @@ extract-point/
 └── requirements.txt               ← full deps including cartopy / cdsapi
 ```
 
-The sample NetCDF (`era5_sample.nc`, ~120 MB) is **not** in git — it is hosted on
+The sample NetCDF (`era5_sample.nc`, ~118 MB) is **not** in git — it is hosted on
 [GitHub Releases](https://github.com/monsun-labs/extract-point/releases/tag/v0.1-data)
 and downloaded by the Step 0 cell.
 
@@ -439,17 +442,7 @@ See the [Open Data Stack](../../open-data/index.md) for full access notes.
 
 ---
 
-## What's next
-
-In the next release, we will cover the following topics:
-
-| Tutorial | Target | Topic |
-|---|---|---|
-| Ocean Map | Jul 2026 | Plot SST and wave height with Cartopy |
-| Time Series Analysis | Aug 2026 | Resample, trend, seasonal decomposition |
-| Waves Basics | Sep 2026 | Hs, Tp, Dir, scatter diagrams, wave rose |
-
-Follow [Monsun on LinkedIn](https://www.linkedin.com/company/monsunic)
+Follow [Monsun Labs on LinkedIn](https://www.linkedin.com/company/monsunic)
 for release announcements.
 
 ---

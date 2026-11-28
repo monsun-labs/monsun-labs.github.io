@@ -17,7 +17,7 @@ site_name = "Monsun Labs"
 # meaningful description of the site content for use by search engines.
 #
 # Read more: https://zensical.org/docs/setup/basics/#site_description
-site_description = "Learn metocean analystics from open data. Free forever."
+site_description = "Learn metocean analytics from open data. Free forever."
 
 # The site_author attribute. This is used in the HTML head element.
 #
@@ -72,6 +72,11 @@ nav = [
 # Read more: https://zensical.org/docs/customization/#additional-css
 #
 extra_css = ["stylesheets/home.css"]
+
+# Keep repository-ops policy docs out of the public site build.
+exclude_docs = """
+/github-identity-and-workflow.md
+"""
 
 # With the `extra_javascript` option you can add your own JavaScript to your
 # project to customize the behavior according to your needs.
