@@ -200,6 +200,8 @@ The file is hosted on [GitHub Releases](https://github.com/monsun-labs/extract-p
 and downloaded automatically by the Step 0 bootstrap cell.
 No Copernicus CDS account is needed to run the tutorial.
 
+![ERA5 sample download domain around Natuna Sea](media/download_area.png)
+
 ---
 
 ### Section 3 — Four extraction methods
@@ -340,6 +342,8 @@ upcoming tutorials on wave statistics and extreme value analysis.
 The notebook produces a **four-panel** plot (Hs, Tp, swell Hs, wind speed / wave direction)
 for the first three months of 2024 as a visual sanity check.
 
+![Quick-look time series from the committed notebook output](media/output_26_0.png)
+
 ---
 
 ### Section 5 — Benchmark: speed and memory
@@ -351,6 +355,8 @@ the whole point of lazy loading is saving memory, not just saving time.
 
 **5.2 — Pre-computed charts** in `data/benchmark/` from maintainer runs on larger ERA5
 files — learners view PNG/CSV only, no multi-GB download.
+
+![Pre-computed large-file benchmark chart](media/era5_large_benchmark.png)
 
 Representative results on the teaching sample:
 
