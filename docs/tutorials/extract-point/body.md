@@ -557,6 +557,9 @@ else:
 
 ```
 
+![Pre-computed large-file benchmark chart](media/era5_large_benchmark.png)
+
+
 ## What This Chart Tells You
 
 | Method | ~Time | Peak RAM | Use When |
@@ -649,3 +652,9 @@ Follow Monsun on [LinkedIn](https://www.linkedin.com/company/monsunic)
 
 Star this repo on [GitHub](https://github.com/monsun-labs/extract-point)
 
+
+
+## Published figures
+
+
+![ERA5 sample download domain around Natuna Sea](media/download_area.png)
